@@ -32,7 +32,7 @@ const Navigation = ({ darkMode, setDarkMode, currentPage, setCurrentPage }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 + index * 0.1 }}
-            className={`capitalize hover:underline transition ${
+            className={`capitalize cursor-pointer hover:underline transition ${
               currentPage === page ? "font-bold" : ""
             }`}
           >
@@ -44,6 +44,7 @@ const Navigation = ({ darkMode, setDarkMode, currentPage, setCurrentPage }) => {
           whileTap={{ rotate: 20, scale: 0.9 }}
           transition={{ type: "spring", stiffness: 300 }}
           onClick={() => setDarkMode(!darkMode)}
+          className="cursor-pointer"
         >
           {darkMode ? <Sun /> : <Moon />}
         </motion.button>

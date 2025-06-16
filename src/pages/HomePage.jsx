@@ -38,7 +38,7 @@ const HomePage = ({
               setSelectedCategory(randomCat.id);
               setCurrentPage("articles");
             }}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg transition inline-flex items-center space-x-2"
+            className="bg-blue-500 cursor-pointer hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg transition inline-flex items-center space-x-2"
           >
             <span>💎</span>
             <span>Surprise Me!</span>
