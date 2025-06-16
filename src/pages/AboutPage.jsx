@@ -1,7 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "../context/ThemeContext";
 
-const AboutPage = ({ darkMode }) => {
+const AboutPage = () => {
+  const { darkMode } = useTheme();
+
   const paragraphVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i) => ({
@@ -17,11 +20,7 @@ const AboutPage = ({ darkMode }) => {
   };
 
   return (
-    <div
-      className={`min-h-screen px-4 py-16 transition-colors duration-500 ${
-        darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-800"
-      }`}
-    >
+    <div className="min-h-screen px-4 py-16 transition-colors duration-200 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -32,7 +31,7 @@ const AboutPage = ({ darkMode }) => {
 
         {[
           "EliteInfoX is your go-to platform for short, crisp, and informative articles. We believe in simplifying information so that anyone can read and enjoy without getting bored or confused.",
-          "Whether you're into tech, politics, fitness, or just want to travel the world through words — we’ve got something for you.",
+          "Whether you're into tech, politics, fitness, or just want to travel the world through words — we've got something for you.",
           "Our mission is to deliver value-packed content in an easy-to-digest format that respects your time and keeps you engaged.",
         ].map((text, i) => (
           <motion.p

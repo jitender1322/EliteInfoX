@@ -1,0 +1,129 @@
+import React from "react";
+import { useTheme } from "../context/ThemeContext";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { 
+  FaNewspaper, 
+  FaLaptopCode, 
+  FaChartLine, 
+  FaGamepad, 
+  FaMobileAlt, 
+  FaRobot, 
+  FaShieldAlt, 
+  FaCloud 
+} from "react-icons/fa";
+
+const categories = [
+  {
+    id: 1,
+    name: "News",
+    description: "Latest updates and breaking news from the tech world",
+    icon: FaNewspaper,
+    color: "bg-blue-500",
+  },
+  {
+    id: 2,
+    name: "Programming",
+    description: "Coding tutorials, best practices, and development insights",
+    icon: FaLaptopCode,
+    color: "bg-purple-500",
+  },
+  {
+    id: 3,
+    name: "Business",
+    description: "Tech industry trends, market analysis, and business strategies",
+    icon: FaChartLine,
+    color: "bg-green-500",
+  },
+  {
+    id: 4,
+    name: "Gaming",
+    description: "Gaming news, reviews, and industry developments",
+    icon: FaGamepad,
+    color: "bg-red-500",
+  },
+  {
+    id: 5,
+    name: "Mobile",
+    description: "Mobile technology, apps, and device reviews",
+    icon: FaMobileAlt,
+    color: "bg-yellow-500",
+  },
+  {
+    id: 6,
+    name: "AI & ML",
+    description: "Artificial Intelligence and Machine Learning advancements",
+    icon: FaRobot,
+    color: "bg-indigo-500",
+  },
+  {
+    id: 7,
+    name: "Security",
+    description: "Cybersecurity, privacy, and digital safety",
+    icon: FaShieldAlt,
+    color: "bg-pink-500",
+  },
+  {
+    id: 8,
+    name: "Cloud",
+    description: "Cloud computing, services, and infrastructure",
+    icon: FaCloud,
+    color: "bg-teal-500",
+  },
+];
+
+const CategoriesPage = () => {
+  const { darkMode } = useTheme();
+
+  return (
+    <div className={`min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h1 className={`text-4xl font-bold mb-4 ${darkMode ? "text-white" : "text-gray-900"}`}>
+            Explore Categories
+          </h1>
+          <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+            Discover content tailored to your interests
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {categories.map((category, index) => (
+            <motion.div
+              key={category.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Link
+                to={`/categories/${category.name.toLowerCase()}`}
+                className={`block p-6 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl ${
+                  darkMode
+                    ? "bg-gray-800 hover:bg-gray-700"
+                    : "bg-white hover:bg-gray-50"
+                }`}
+              >
+                <div className={`w-12 h-12 ${category.color} rounded-lg flex items-center justify-center mb-4`}>
+                  <category.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
+                  {category.name}
+                </h3>
+                <p className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                  {category.description}
+                </p>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CategoriesPage;

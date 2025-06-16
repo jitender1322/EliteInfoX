@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "../context/ThemeContext";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -10,13 +11,11 @@ const fadeUp = {
   }),
 };
 
-const ContactPage = ({ darkMode }) => {
+const ContactPage = () => {
+  const { darkMode } = useTheme();
+
   return (
-    <div
-      className={`min-h-screen px-4 py-16 transition ${
-        darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-800"
-      }`}
-    >
+    <div className="min-h-screen px-4 py-16 transition-colors duration-200 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white">
       <motion.div
         className="max-w-3xl mx-auto"
         initial="hidden"
@@ -52,31 +51,19 @@ const ContactPage = ({ darkMode }) => {
                 <input
                   type="text"
                   placeholder="Your Name"
-                  className={`w-full px-4 py-2 rounded border ${
-                    darkMode
-                      ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  }`}
+                  className="w-full px-4 py-2 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
                 />
               ) : index === 1 ? (
                 <input
                   type="email"
                   placeholder="Your Email"
-                  className={`w-full px-4 py-2 rounded border ${
-                    darkMode
-                      ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  }`}
+                  className="w-full px-4 py-2 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
                 />
               ) : (
                 <textarea
                   rows="5"
                   placeholder="Your Message"
-                  className={`w-full px-4 py-2 rounded border ${
-                    darkMode
-                      ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  }`}
+                  className="w-full px-4 py-2 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
                 />
               )}
             </motion.div>
@@ -88,7 +75,7 @@ const ContactPage = ({ darkMode }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Send Message
             </motion.button>
