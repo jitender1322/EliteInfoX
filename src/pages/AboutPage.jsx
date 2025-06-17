@@ -20,7 +20,7 @@ const AboutPage = () => {
   };
 
   return (
-    <div className="min-h-screen px-4 py-16 transition-colors duration-200 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white">
+    <div className="min-h-screen mt-14 px-4 py-16 transition-colors duration-200 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}

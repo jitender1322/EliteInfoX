@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FiMenu, FiX, FiSearch, FiSun, FiMoon } from "react-icons/fi";
+import { FiMenu, FiX, FiSun, FiMoon, FiShield } from "react-icons/fi";
 import { useTheme } from "../context/ThemeContext";
 
-const Navigation = ({ searchQuery, setSearchQuery }) => {
+const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
@@ -63,18 +63,15 @@ const Navigation = ({ searchQuery, setSearchQuery }) => {
             ))}
           </div>
 
-          {/* Search and Theme Toggle */}
+          {/* Theme Toggle and Admin Link */}
           <div className="hidden md:flex items-center space-x-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-48 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
-              />
-              <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
+            <Link
+              to="/admin/login"
+              className="flex items-center space-x-2 text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
+            >
+              <FiShield className="w-4 h-4" />
+              <span>Admin</span>
+            </Link>
             <button
               onClick={toggleDarkMode}
               className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -120,16 +117,6 @@ const Navigation = ({ searchQuery, setSearchQuery }) => {
       {isMenuOpen && (
         <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
           <div className="px-4 py-3">
-            <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
-              />
-              <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
             <div className="space-y-1">
               {navLinks.map((link) => (
                 <Link
@@ -145,6 +132,14 @@ const Navigation = ({ searchQuery, setSearchQuery }) => {
                   {link.name}
                 </Link>
               ))}
+              <Link
+                to="/admin/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                <FiShield className="w-4 h-4" />
+                <span>Admin</span>
+              </Link>
             </div>
           </div>
         </div>
