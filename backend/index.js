@@ -28,6 +28,7 @@ const corsOptions = {
     process.env.FRONTEND_URL || "http://localhost:3000",
     "http://localhost:3000",
     "http://localhost:5173",
+    "https://elite-info-x.vercel.app", // Added deployed frontend URL
   ],
   credentials: true, // Allow cookies
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
