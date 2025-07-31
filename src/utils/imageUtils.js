@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = "https://eliteinfox-1.onrender.com";
 
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
