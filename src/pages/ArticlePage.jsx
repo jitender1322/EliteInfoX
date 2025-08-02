@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { FiArrowLeft, FiClock, FiCalendar } from "react-icons/fi";
 import { useArticle } from "../hooks/useApiData";
 import { getImageUrl } from "../utils/imageUtils";
-import { renderFormattedContent } from "../utils/contentRenderer";
+import { renderFormattedContent } from "../utils/contentRenderer.jsx";
 
 const ArticlePage = () => {
   const { id } = useParams();

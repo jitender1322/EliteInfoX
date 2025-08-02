@@ -21,7 +21,7 @@ import {
 import { categoriesAPI, articlesAPI } from "../services/api";
 import { usePreventBackNavigation } from "../hooks/useScrollToTop";
 import { useAuth } from "../context/ThemeContext";
-import { renderFormattedContent } from "../utils/contentRenderer";
+import { renderFormattedContent } from "../utils/contentRenderer.jsx";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
