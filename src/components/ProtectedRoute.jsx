@@ -1,28 +1,26 @@
-import { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { adminAPI } from "../services/api";
+import { useEffect } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/ThemeContext";
 
 const ProtectedRoute = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
+  // Handle browser back button
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Verify authentication with the backend
-        await adminAPI.getProfile();
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Authentication check failed:", error);
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
+    const handlePopState = () => {
+      if (!isAuthenticated) {
+        navigate("/admin/login", { replace: true });
       }
     };
 
-    checkAuth();
-  }, []);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [isAuthenticated, navigate]);
 
   if (loading) {
     return (

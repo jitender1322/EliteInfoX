@@ -18,10 +18,14 @@ import {
   FiClock,
   FiCalendar,
 } from "react-icons/fi";
-import { adminAPI, categoriesAPI, articlesAPI } from "../services/api";
+import { categoriesAPI, articlesAPI } from "../services/api";
+import { usePreventBackNavigation } from "../hooks/useScrollToTop";
+import { useAuth } from "../context/ThemeContext";
+import { renderFormattedContent } from "../utils/contentRenderer";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { logout, adminProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -32,7 +36,6 @@ const AdminDashboard = () => {
   });
   const [categories, setCategories] = useState([]);
   const [articles, setArticles] = useState([]);
-  const [adminProfile, setAdminProfile] = useState(null);
 
   // Modal states
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -43,13 +46,11 @@ const AdminDashboard = () => {
 
   // Form states
   const [categoryForm, setCategoryForm] = useState({
-    id: "",
     name: "",
     description: "",
     icon: "FiGlobe",
     color: "text-blue-600",
     bgColor: "bg-blue-100",
-    slug: "",
   });
 
   const [articleForm, setArticleForm] = useState({
@@ -85,6 +86,9 @@ const AdminDashboard = () => {
     { value: "text-indigo-600", bgColor: "bg-indigo-100", label: "Indigo" },
   ];
 
+  // Use the hook to prevent back navigation after logout
+  usePreventBackNavigation(true);
+
   useEffect(() => {
     loadDashboardData();
   }, []);
@@ -92,10 +96,6 @@ const AdminDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-
-      // Load admin profile
-      const profileResponse = await adminAPI.getProfile();
-      setAdminProfile(profileResponse.data);
 
       // Load categories
       const categoriesResponse = await categoriesAPI.adminGetAll();
@@ -135,11 +135,39 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await adminAPI.logout();
-      navigate("/admin/login");
+      await logout();
+
+      // Clear browser history and redirect to login
+      navigate("/admin/login", { replace: true });
+
+      // Clear any remaining browser state
+      if (window.history && window.history.pushState) {
+        // Push a new state to prevent back navigation
+        window.history.pushState(null, null, "/admin/login");
+        window.history.pushState(null, null, "/admin/login");
+        window.history.go(-1);
+      }
+
+      // Force a page reload to clear any cached state
+      setTimeout(() => {
+        window.location.href = "/admin/login";
+      }, 100);
     } catch (error) {
       console.error("Logout failed:", error);
-      navigate("/admin/login");
+
+      // Even if logout fails, redirect to login and clear history
+      navigate("/admin/login", { replace: true });
+
+      // Clear browser state even on error
+      if (window.history && window.history.pushState) {
+        window.history.pushState(null, null, "/admin/login");
+        window.history.pushState(null, null, "/admin/login");
+        window.history.go(-1);
+      }
+
+      setTimeout(() => {
+        window.location.href = "/admin/login";
+      }, 100);
     }
   };
 
@@ -148,24 +176,20 @@ const AdminDashboard = () => {
     if (category) {
       setEditingItem(category);
       setCategoryForm({
-        id: category.id,
         name: category.name,
         description: category.description || "",
         icon: category.icon || "FiGlobe",
         color: category.color || "text-blue-600",
         bgColor: category.bgColor || "bg-blue-100",
-        slug: category.slug,
       });
     } else {
       setEditingItem(null);
       setCategoryForm({
-        id: "",
         name: "",
         description: "",
         icon: "FiGlobe",
         color: "text-blue-600",
         bgColor: "bg-blue-100",
-        slug: "",
       });
     }
     setShowCategoryModal(true);
@@ -455,7 +479,8 @@ const AdminDashboard = () => {
                           {article.title}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {article.category}
+                          {categories.find((cat) => cat.id === article.category)
+                            ?.name || article.category}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -505,9 +530,7 @@ const AdminDashboard = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Name
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Slug
-                        </th>
+
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Articles
                         </th>
@@ -527,9 +550,7 @@ const AdminDashboard = () => {
                               {category.description}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {category.slug}
-                          </td>
+
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {
                               articles.filter(
@@ -619,7 +640,9 @@ const AdminDashboard = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {article.category}
+                            {categories.find(
+                              (cat) => cat.id === article.category
+                            )?.name || article.category}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
@@ -727,22 +750,6 @@ const AdminDashboard = () => {
               <form onSubmit={handleCategorySubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    ID *
-                  </label>
-                  <input
-                    type="text"
-                    value={categoryForm.id}
-                    onChange={(e) =>
-                      setCategoryForm({ ...categoryForm, id: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    required
-                    disabled={!!editingItem}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Name *
                   </label>
                   <input
@@ -816,21 +823,6 @@ const AdminDashboard = () => {
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Slug *
-                  </label>
-                  <input
-                    type="text"
-                    value={categoryForm.slug}
-                    onChange={(e) =>
-                      setCategoryForm({ ...categoryForm, slug: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    required
-                  />
                 </div>
 
                 <div className="flex space-x-3 pt-4">
@@ -910,7 +902,115 @@ const AdminDashboard = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Content
                   </label>
+                  <div className="mb-2">
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const textarea =
+                            document.getElementById("content-textarea");
+                          const start = textarea.selectionStart;
+                          const end = textarea.selectionEnd;
+                          const text = articleForm.content;
+                          const before = text.substring(0, start);
+                          const selected = text.substring(start, end);
+                          const after = text.substring(end);
+                          const newText =
+                            before + "**" + selected + "**" + after;
+                          setArticleForm({ ...articleForm, content: newText });
+                          setTimeout(() => {
+                            textarea.focus();
+                            textarea.setSelectionRange(start + 2, end + 2);
+                          }, 0);
+                        }}
+                        className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-500"
+                      >
+                        Bold
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const textarea =
+                            document.getElementById("content-textarea");
+                          const start = textarea.selectionStart;
+                          const end = textarea.selectionEnd;
+                          const text = articleForm.content;
+                          const before = text.substring(0, start);
+                          const selected = text.substring(start, end);
+                          const after = text.substring(end);
+                          const newText = before + "*" + selected + "*" + after;
+                          setArticleForm({ ...articleForm, content: newText });
+                          setTimeout(() => {
+                            textarea.focus();
+                            textarea.setSelectionRange(start + 1, end + 1);
+                          }, 0);
+                        }}
+                        className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-500"
+                      >
+                        Italic
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const textarea =
+                            document.getElementById("content-textarea");
+                          const start = textarea.selectionStart;
+                          const end = textarea.selectionEnd;
+                          const text = articleForm.content;
+                          const before = text.substring(0, start);
+                          const selected = text.substring(start, end);
+                          const after = text.substring(end);
+                          const newText = before + "`" + selected + "`" + after;
+                          setArticleForm({ ...articleForm, content: newText });
+                          setTimeout(() => {
+                            textarea.focus();
+                            textarea.setSelectionRange(start + 1, end + 1);
+                          }, 0);
+                        }}
+                        className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-500"
+                      >
+                        Code
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const textarea =
+                            document.getElementById("content-textarea");
+                          const start = textarea.selectionStart;
+                          const text = articleForm.content;
+                          const before = text.substring(0, start);
+                          const after = text.substring(start);
+                          const newText = before + "\n\n---\n\n" + after;
+                          setArticleForm({ ...articleForm, content: newText });
+                          setTimeout(() => {
+                            textarea.focus();
+                            textarea.setSelectionRange(start + 6, start + 6);
+                          }, 0);
+                        }}
+                        className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-500"
+                      >
+                        Divider
+                      </button>
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      <p>Formatting Guide:</p>
+                      <p>
+                        • <strong>**text**</strong> for bold text
+                      </p>
+                      <p>
+                        • <em>*text*</em> for italic text
+                      </p>
+                      <p>
+                        • <code>`code`</code> for inline code
+                      </p>
+                      <p>
+                        • <code>---</code> for horizontal divider
+                      </p>
+                      <p>• Press Enter twice for new paragraphs</p>
+                    </div>
+                  </div>
                   <textarea
+                    id="content-textarea"
                     value={articleForm.content}
                     onChange={(e) =>
                       setArticleForm({
@@ -918,9 +1018,20 @@ const AdminDashboard = () => {
                         content: e.target.value,
                       })
                     }
-                    rows={6}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter article content..."
+                    rows={12}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white font-mono text-sm"
+                    placeholder="Enter article content...
+
+Use formatting:
+**Bold text**
+*Italic text*
+`Code snippet`
+
+Press Enter twice for new paragraphs.
+
+---
+
+Add dividers between sections."
                   />
                 </div>
 
@@ -1081,14 +1192,7 @@ const AdminDashboard = () => {
                       {viewingItem.description || "No description"}
                     </p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Slug
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                      {viewingItem.slug}
-                    </p>
-                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Icon
@@ -1132,9 +1236,15 @@ const AdminDashboard = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Content
                     </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                      {viewingItem.content || "No content"}
-                    </p>
+                    <div className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {viewingItem.content ? (
+                        <div className="prose prose-sm max-w-none">
+                          {renderFormattedContent(viewingItem.content)}
+                        </div>
+                      ) : (
+                        "No content"
+                      )}
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -1142,7 +1252,9 @@ const AdminDashboard = () => {
                         Category
                       </label>
                       <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {viewingItem.category}
+                        {categories.find(
+                          (cat) => cat.id === viewingItem.category
+                        )?.name || viewingItem.category}
                       </p>
                     </div>
                     <div>

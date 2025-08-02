@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FiArrowLeft, FiClock, FiCalendar } from "react-icons/fi";
 import { useArticle } from "../hooks/useApiData";
 import { getImageUrl } from "../utils/imageUtils";
+import { renderFormattedContent } from "../utils/contentRenderer";
 
 const ArticlePage = () => {
   const { id } = useParams();
@@ -108,7 +109,9 @@ const ArticlePage = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-soft">
               <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {article.content ? (
-                  <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                  <div className="prose prose-lg max-w-none">
+                    {renderFormattedContent(article.content)}
+                  </div>
                 ) : (
                   <p className="text-lg leading-relaxed">
                     This is a comprehensive article about{" "}

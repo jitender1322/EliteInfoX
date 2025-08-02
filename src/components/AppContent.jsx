@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { useAdminRouteProtection } from "../hooks/useScrollToTop";
 import Navigation from "./Navigation";
 import Footer from "./Footer";
 import ProtectedRoute from "./ProtectedRoute";
@@ -27,6 +28,9 @@ const PageLoader = () => (
 const AppContent = () => {
   const { darkMode } = useTheme();
   const location = useLocation();
+
+  // Use admin route protection hook
+  useAdminRouteProtection();
 
   // Check if current route is an admin route
   const isAdminRoute = location.pathname.startsWith("/admin");

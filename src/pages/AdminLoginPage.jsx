@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import { adminAPI } from "../services/api";
+import { useAuth } from "../context/ThemeContext";
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -17,20 +18,12 @@ const AdminLoginPage = () => {
 
   // Check if user is already authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        await adminAPI.getProfile();
-        // User is already authenticated, redirect to dashboard
-        const from = location.state?.from?.pathname || "/admin/dashboard";
-        navigate(from, { replace: true });
-      } catch (error) {
-        // User is not authenticated, stay on login page
-        console.log("User not authenticated, staying on login page");
-      }
-    };
-
-    checkAuth();
-  }, [navigate, location]);
+    if (isAuthenticated && !authLoading) {
+      // User is already authenticated, redirect to dashboard
+      const from = location.state?.from?.pathname || "/admin/dashboard";
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate, location]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -48,14 +41,14 @@ const AdminLoginPage = () => {
     setError("");
 
     try {
-      const response = await adminAPI.login(formData);
+      const result = await login(formData);
 
-      if (response.success) {
+      if (result.success) {
         // Redirect to the intended destination or dashboard
         const from = location.state?.from?.pathname || "/admin/dashboard";
         navigate(from, { replace: true });
       } else {
-        setError(response.message || "Login failed");
+        setError(result.message || "Login failed");
       }
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
@@ -63,6 +56,20 @@ const AdminLoginPage = () => {
       setLoading(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render login form if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
