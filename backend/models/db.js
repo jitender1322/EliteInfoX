@@ -36,18 +36,8 @@ const initializeDatabase = async () => {
   try {
     const connection = await pool.getConnection();
 
-    // Drop existing tables to ensure clean setup
-    try {
-      await connection.execute("DROP TABLE IF EXISTS articles");
-      await connection.execute("DROP TABLE IF EXISTS categories");
-      await connection.execute("DROP TABLE IF EXISTS admin");
-      console.log("Dropped existing tables for clean setup");
-    } catch (error) {
-      console.log(
-        "No existing tables to drop or error dropping tables:",
-        error.message
-      );
-    }
+    // Check if tables exist, don't drop them
+    console.log("Checking existing tables...");
 
     // Create admin table
     const createAdminTable = `
@@ -70,7 +60,6 @@ const initializeDatabase = async () => {
         icon VARCHAR(100),
         color VARCHAR(50),
         bgColor VARCHAR(50),
-        slug VARCHAR(255) UNIQUE NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )

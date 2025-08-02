@@ -2,11 +2,15 @@ const API_BASE_URL = "https://eliteinfox-1.onrender.com/api";
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
+  console.log("API Response status:", response.status, response.statusText);
   if (!response.ok) {
     const error = await response.json();
+    console.log("API Error:", error);
     throw new Error(error.message || "API request failed");
   }
-  return response.json();
+  const data = await response.json();
+  console.log("API Response data:", data);
+  return data;
 };
 
 // Generic API request function
@@ -49,7 +53,7 @@ export const categoriesAPI = {
     return apiRequest(`/admin/categories/${id}`);
   },
 
-  adminCreate: async (categoryData) => {
+  adminCreate: async (categoryData) => {  
     return apiRequest("/admin/categories", {
       method: "POST",
       body: JSON.stringify(categoryData),

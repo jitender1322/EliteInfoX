@@ -51,9 +51,16 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
+      console.log("Checking authentication...");
       const response = await adminAPI.getProfile();
-      setAdminProfile(response.data);
-      setIsAuthenticated(true);
+      console.log("Auth check response:", response);
+      if (response && response.admin) {
+        setAdminProfile(response.admin);
+        setIsAuthenticated(true);
+        console.log("User is authenticated:", response.admin);
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (error) {
       console.error("Authentication check failed:", error);
       setIsAuthenticated(false);
@@ -63,10 +70,26 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem("adminAuth");
       localStorage.removeItem("adminToken");
       sessionStorage.removeItem("adminToken");
+      console.log("User is not authenticated");
     } finally {
       setLoading(false);
     }
   };
+
+  // Check authentication status on mount and when window gains focus
+  useEffect(() => {
+    checkAuth();
+
+    const handleFocus = () => {
+      // Re-check authentication when window gains focus
+      if (isAuthenticated) {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [isAuthenticated]); // Added isAuthenticated to dependencies
 
   const login = async (credentials) => {
     try {
@@ -91,16 +114,31 @@ export const AuthProvider = ({ children }) => {
       // Clear authentication state regardless of API response
       setIsAuthenticated(false);
       setAdminProfile(null);
+
+      // Clear all possible storage locations
       localStorage.removeItem("adminAuth");
       sessionStorage.removeItem("adminAuth");
       localStorage.removeItem("adminToken");
       sessionStorage.removeItem("adminToken");
+      localStorage.removeItem("isAuthenticated");
+      sessionStorage.removeItem("isAuthenticated");
+
+      // Clear any other potential auth-related items
+      Object.keys(localStorage).forEach((key) => {
+        if (key.includes("admin") || key.includes("auth")) {
+          localStorage.removeItem(key);
+        }
+      });
+
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.includes("admin") || key.includes("auth")) {
+          sessionStorage.removeItem(key);
+        }
+      });
     }
   };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  // Remove duplicate useEffect - checkAuth is already called in the first useEffect
 
   return (
     <AuthContext.Provider

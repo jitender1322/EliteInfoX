@@ -21,11 +21,12 @@ import {
 import { categoriesAPI, articlesAPI } from "../services/api";
 import { usePreventBackNavigation } from "../hooks/useScrollToTop";
 import { useAuth } from "../context/ThemeContext";
+import { useAuthGuard } from "../hooks/useAuthGuard";
 import { renderFormattedContent } from "../utils/contentRenderer.jsx";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { logout, adminProfile } = useAuth();
+  const { logout, adminProfile, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -86,8 +87,9 @@ const AdminDashboard = () => {
     { value: "text-indigo-600", bgColor: "bg-indigo-100", label: "Indigo" },
   ];
 
-  // Use the hook to prevent back navigation after logout
-  usePreventBackNavigation(true);
+  // Use the hooks to prevent back navigation and guard authentication
+  usePreventBackNavigation(isAuthenticated);
+  useAuthGuard();
 
   useEffect(() => {
     loadDashboardData();
@@ -142,10 +144,11 @@ const AdminDashboard = () => {
 
       // Clear any remaining browser state
       if (window.history && window.history.pushState) {
-        // Push a new state to prevent back navigation
+        // Push multiple states to prevent back navigation
         window.history.pushState(null, null, "/admin/login");
         window.history.pushState(null, null, "/admin/login");
-        window.history.go(-1);
+        window.history.pushState(null, null, "/admin/login");
+        window.history.go(-2);
       }
 
       // Force a page reload to clear any cached state
@@ -162,7 +165,8 @@ const AdminDashboard = () => {
       if (window.history && window.history.pushState) {
         window.history.pushState(null, null, "/admin/login");
         window.history.pushState(null, null, "/admin/login");
-        window.history.go(-1);
+        window.history.pushState(null, null, "/admin/login");
+        window.history.go(-2);
       }
 
       setTimeout(() => {

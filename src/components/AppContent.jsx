@@ -5,6 +5,7 @@ import { useAdminRouteProtection } from "../hooks/useScrollToTop";
 import Navigation from "./Navigation";
 import Footer from "./Footer";
 import ProtectedRoute from "./ProtectedRoute";
+import AuthDebug from "./AuthDebug";
 
 // Lazy load all page components
 const HomePage = lazy(() => import("../pages/HomePage"));
@@ -37,6 +38,7 @@ const AppContent = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${darkMode ? "dark" : ""}`}>
+      <AuthDebug />
       <div className="flex-grow bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
         {!isAdminRoute && <Navigation />}
         <main className="flex-grow">

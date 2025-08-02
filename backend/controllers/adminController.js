@@ -131,8 +131,8 @@ export const adminLogout = async (req, res) => {
     // Clear the HTTP-only cookie
     res.clearCookie("adminToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true, // Always true for cross-origin
+      sameSite: "none", // Must match login
     });
 
     res.status(200).json({
@@ -225,46 +225,45 @@ export const getCategory = async (req, res) => {
 };
 
 // Create category
-export const createCategory = async (req, res) => {
-  try {
-    const { id, name, description, icon, color, bgColor, slug } = req.body;
+import { v4 as uuidv4 } from "uuid"; // Make sure this is installed
 
-    if (!id || !name || !slug) {
+export const createCategory = async (req, res) => {  
+  try {
+    const { name, description, icon, color, bgColor } = req.body;
+
+    // Validate required field
+    if (!name) {
       return res.status(400).json({
         success: false,
-        message: "ID, name and slug are required",
+        message: "Name is required",
       });
     }
 
-    // Check if category ID already exists
+    // Optional: trim name
+    const trimmedName = name.trim();
+
+    // Check if category with the same name exists
     const [existing] = await pool.execute(
-      "SELECT id FROM categories WHERE id = ?",
-      [id]
+      "SELECT id FROM categories WHERE name = ?",
+      [trimmedName]
     );
     if (existing.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "Category with this ID already exists",
+        message: `Category with name '${trimmedName}' already exists`,
       });
     }
 
-    // Check if slug already exists
-    const [slugExists] = await pool.execute(
-      "SELECT id FROM categories WHERE slug = ?",
-      [slug]
-    );
-    if (slugExists.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Category with this slug already exists",
-      });
-    }
+    // Generate unique ID
+    const id = uuidv4();
 
+    // Insert new category
     const [result] = await pool.execute(
-      "INSERT INTO categories (id, name, description, icon, color, bgColor, slug) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [id, name, description, icon, color, bgColor, slug]
+      "INSERT INTO categories (id, name, description, icon, color, bgColor) VALUES (?, ?, ?, ?, ?, ?)",
+      [id, trimmedName, description, icon, color, bgColor]
     );
 
+    // Fetch the newly created category
     const [newCategory] = await pool.execute(
       "SELECT * FROM categories WHERE id = ?",
       [id]
@@ -284,13 +283,24 @@ export const createCategory = async (req, res) => {
   }
 };
 
+
 // Update category
 export const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, icon, color, bgColor, slug } = req.body;
+    const { name, description, icon, color, bgColor } = req.body;
 
-    // Check if category exists
+    // Validate name
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "Name is required",
+      });
+    }
+
+    const trimmedName = name.trim();
+
+    // Check if category with this ID exists
     const [existing] = await pool.execute(
       "SELECT id FROM categories WHERE id = ?",
       [id]
@@ -302,25 +312,25 @@ export const updateCategory = async (req, res) => {
       });
     }
 
-    // Check if slug already exists (excluding current category)
-    if (slug) {
-      const [slugExists] = await pool.execute(
-        "SELECT id FROM categories WHERE slug = ? AND id != ?",
-        [slug, id]
-      );
-      if (slugExists.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Category with this slug already exists",
-        });
-      }
+    // Check if another category with the same name exists
+    const [nameConflict] = await pool.execute(
+      "SELECT id FROM categories WHERE name = ? AND id != ?",
+      [trimmedName, id]
+    );
+    if (nameConflict.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Another category with the name '${trimmedName}' already exists`,
+      });
     }
 
+    // Update the category
     await pool.execute(
-      "UPDATE categories SET name = ?, description = ?, icon = ?, color = ?, bgColor = ?, slug = ? WHERE id = ?",
-      [name, description, icon, color, bgColor, slug, id]
+      "UPDATE categories SET name = ?, description = ?, icon = ?, color = ?, bgColor = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [trimmedName, description, icon, color, bgColor, id]
     );
 
+    // Get updated category
     const [updatedCategory] = await pool.execute(
       "SELECT * FROM categories WHERE id = ?",
       [id]

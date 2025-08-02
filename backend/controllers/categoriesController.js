@@ -103,38 +103,45 @@ export const adminGetCategoryById = async (req, res) => {
 };
 
 // Admin: Create category
-export const createCategory = async (req, res) => {
+import { v4 as uuidv4 } from "uuid"; // Make sure this is installed
+
+export const createCategory = async (req, res) => {  
   try {
-    const { id, name, description, icon, color, bgColor, slug } = req.body;
+    const { name, description, icon, color, bgColor } = req.body;
 
-    if (!id || !name || !slug) {
+    // Validate required field
+    if (!name) {
       return res.status(400).json({
         success: false,
-        message: "ID, name, and slug are required",
+        message: "Name is required",
       });
     }
 
-    // Check if category with same ID or slug already exists
-    const [existingCategories] = await pool.execute(
-      "SELECT * FROM categories WHERE id = ? OR slug = ?",
-      [id, slug]
+    // Optional: trim name
+    const trimmedName = name.trim();
+
+    // Check if category with the same name exists
+    const [existing] = await pool.execute(
+      "SELECT id FROM categories WHERE name = ?",
+      [trimmedName]
     );
-
-    if (existingCategories.length > 0) {
+    if (existing.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "Category with this ID or slug already exists",
+        message: `Category with name '${trimmedName}' already exists`,
       });
     }
 
+    // Generate unique ID
+    const id = uuidv4();
+
+    // Insert new category
     const [result] = await pool.execute(
-      `
-      INSERT INTO categories (id, name, description, icon, color, bgColor, slug) 
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
-      [id, name, description, icon, color, bgColor, slug]
+      "INSERT INTO categories (id, name, description, icon, color, bgColor) VALUES (?, ?, ?, ?, ?, ?)",
+      [id, trimmedName, description, icon, color, bgColor]
     );
 
+    // Fetch the newly created category
     const [newCategory] = await pool.execute(
       "SELECT * FROM categories WHERE id = ?",
       [id]
@@ -154,11 +161,22 @@ export const createCategory = async (req, res) => {
   }
 };
 
+
 // Admin: Update category
 export const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, icon, color, bgColor, slug } = req.body;
+    const { name, description, icon, color, bgColor } = req.body;
+
+    // Check required field
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "Name is required",
+      });
+    }
+
+    const trimmedName = name.trim();
 
     // Check if category exists
     const [existingCategories] = await pool.execute(
@@ -173,32 +191,30 @@ export const updateCategory = async (req, res) => {
       });
     }
 
-    // Check if slug is being changed and if it conflicts with another category
-    if (slug && slug !== existingCategories[0].slug) {
-      const [slugConflict] = await pool.execute(
-        "SELECT * FROM categories WHERE slug = ? AND id != ?",
-        [slug, id]
-      );
+    // Check if the new name already exists in another category
+    const [nameConflict] = await pool.execute(
+      "SELECT id FROM categories WHERE name = ? AND id != ?",
+      [trimmedName, id]
+    );
 
-      if (slugConflict.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Category with this slug already exists",
-        });
-      }
+    if (nameConflict.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Another category with the name '${trimmedName}' already exists`,
+      });
     }
 
-    // Update category
+    // Update the category
     await pool.execute(
       `
       UPDATE categories 
-      SET name = ?, description = ?, icon = ?, color = ?, bgColor = ?, slug = ?, updated_at = CURRENT_TIMESTAMP
+      SET name = ?, description = ?, icon = ?, color = ?, bgColor = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `,
-      [name, description, icon, color, bgColor, slug, id]
+      [trimmedName, description, icon, color, bgColor, id]
     );
 
-    // Get updated category
+    // Get updated data
     const [updatedCategories] = await pool.execute(
       "SELECT * FROM categories WHERE id = ?",
       [id]
@@ -217,6 +233,7 @@ export const updateCategory = async (req, res) => {
     });
   }
 };
+
 
 // Admin: Delete category
 export const deleteCategory = async (req, res) => {

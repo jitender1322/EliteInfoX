@@ -22,10 +22,19 @@ export const usePreventBackNavigation = (isAuthenticated) => {
       }
     };
 
+    // Also check on page load/visibility change
+    const handleVisibilityChange = () => {
+      if (!isAuthenticated && window.location.pathname.startsWith("/admin")) {
+        navigate("/admin/login", { replace: true });
+      }
+    };
+
     window.addEventListener("popstate", handlePopState);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isAuthenticated, navigate]);
 };

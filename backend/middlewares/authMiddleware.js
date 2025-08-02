@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { pool } from "../models/db.js";
 
 export const authenticateToken = async (req, res, next) => {
+  console.log("[AuthMiddleware] Cookies received:", req.cookies);
   try {
     // Get token from HTTP-only cookie
     const token = req.cookies.adminToken;
