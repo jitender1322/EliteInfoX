@@ -84,7 +84,7 @@ const startServer = async () => {
     }
 
     // Initialize database (create tables, insert default admin)
-    // await initializeDatabase();
+    await initializeDatabase();
 
     // Start server
     app.listen(PORT, () => {
