@@ -6,7 +6,7 @@ export const getAllArticles = async (req, res) => {
     const { category } = req.query;
 
     let query = `
-      SELECT a.*, c.name as category_name, c.slug as category_slug 
+      SELECT a.*, c.name as category_name
       FROM articles a 
       LEFT JOIN categories c ON a.category = c.id 
       WHERE a.status = 'published'
@@ -43,7 +43,7 @@ export const getArticleById = async (req, res) => {
     const { id } = req.params;
     const [articles] = await pool.execute(
       `
-      SELECT a.*, c.name as category_name, c.slug as category_slug 
+      SELECT a.*, c.name as category_name
       FROM articles a 
       LEFT JOIN categories c ON a.category = c.id 
       WHERE a.id = ? AND a.status = 'published'
@@ -76,7 +76,7 @@ export const getArticleById = async (req, res) => {
 export const adminGetAllArticles = async (req, res) => {
   try {
     const [articles] = await pool.execute(`
-      SELECT a.*, c.name as category_name, c.slug as category_slug 
+      SELECT a.*, c.name as category_name
       FROM articles a 
       LEFT JOIN categories c ON a.category = c.id 
       ORDER BY a.created_at DESC
@@ -102,7 +102,7 @@ export const adminGetArticleById = async (req, res) => {
     const { id } = req.params;
     const [articles] = await pool.execute(
       `
-      SELECT a.*, c.name as category_name, c.slug as category_slug 
+      SELECT a.*, c.name as category_name
       FROM articles a 
       LEFT JOIN categories c ON a.category = c.id 
       WHERE a.id = ?
@@ -164,7 +164,7 @@ export const createArticle = async (req, res) => {
 
     const [newArticle] = await pool.execute(
       `
-      SELECT a.*, c.name as category_name, c.slug as category_slug 
+      SELECT a.*, c.name as category_name
       FROM articles a 
       LEFT JOIN categories c ON a.category = c.id 
       WHERE a.id = ?
@@ -226,7 +226,7 @@ export const updateArticle = async (req, res) => {
     // Get updated article
     const [updatedArticles] = await pool.execute(
       `
-      SELECT a.*, c.name as category_name, c.slug as category_slug 
+      SELECT a.*, c.name as category_name
       FROM articles a 
       LEFT JOIN categories c ON a.category = c.id 
       WHERE a.id = ?
